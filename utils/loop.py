@@ -6,10 +6,9 @@ from tqdm import tqdm as tqdm
 
 class Epoch:
 
-    def __init__(self, model, loss, metrics, stage_name, device='cpu'):
+    def __init__(self, model, loss, stage_name, device='cpu'):
         self.model = model
         self.loss = loss
-        self.metrics = metrics
         self.stage_name = stage_name
         self.device = device
         self._to_device()
@@ -34,20 +33,16 @@ class Epoch:
             # update loss logs
             # loss_value = loss.cpu().detach().numpy()
             batch_losses.append(loss.item())
-            # update metrics logs
-            if self.metrics:
-                self.metrics.forward(y_pred, y)
                 
         return batch_losses
 
 
 class TrainEpoch(Epoch):
 
-    def __init__(self, model, loss, metrics=None, optimizer=None, device='cpu'):
+    def __init__(self, model, loss, optimizer=None, device='cpu'):
         super().__init__(
             model=model,
             loss=loss,
-            metrics=metrics,
             stage_name='train',
             device=device
         )
