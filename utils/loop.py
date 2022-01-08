@@ -29,9 +29,7 @@ class Epoch:
         batch_losses = []
         for x, y in tqdm(dataloader):
             x, y = x.to(self.device), y.to(self.device)
-            loss, y_pred = self.batch_update(x, y)
-            # update loss logs
-            # loss_value = loss.cpu().detach().numpy()
+            loss = self.batch_update(x, y)
             batch_losses.append(loss.item())
                 
         return batch_losses
@@ -59,7 +57,7 @@ class TrainEpoch(Epoch):
         loss.backward()
         if self.optimizer:
             self.optimizer.step()
-        return loss, prediction
+        return loss
 
 
 class ValidEpoch(Epoch):
@@ -79,4 +77,4 @@ class ValidEpoch(Epoch):
         with torch.no_grad():
             prediction = self.model.forward(x)
             loss = self.loss(prediction, y)
-        return loss, prediction
+        return loss

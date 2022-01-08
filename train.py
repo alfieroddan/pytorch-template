@@ -8,6 +8,7 @@ from optimizer.gen_optimizer import get_optimizer
 from scheduler.gen_scheduler  import get_scheduler
 from dataloader.gen_dataloader import get_dataloader
 from dataloader.gen_transform import get_transform
+from metric.gen_metrics import get_metric
 from data.gen_data import get_data
 from utils.loop import ValidEpoch, TrainEpoch
 from utils.save import save_checkpoint, save_config, summary
@@ -42,6 +43,7 @@ def run(config):
     optimizer = get_optimizer(config, model.parameters())
     scheduler = get_scheduler(config, optimizer, -1)
     loss = get_loss(config)
+    metric = get_metric
     # transforms
     transforms = get_transform(config)
     # get dataframe and ids

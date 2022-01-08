@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.nn.functional as F
 import torch
 from sklearn import metrics
 
@@ -76,7 +77,6 @@ class BinaryClassificationMeter(nn.Module):
         # self.avg_pre = torch.nanmean(self.pre)
         # self.avg_rec = torch.nanmean(self.rec)
         # self.avg_f1 = torch.nanmean(self.f1)
-
 
 def metric(name, params):
     f = globals().get(name)

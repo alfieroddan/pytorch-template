@@ -33,9 +33,9 @@ data:
   path: './input/fashionmnist/df.csv'
   store: None
   val_fold: 1
-  train_bs: 64
-  val_bs: 64
-  nb_epochs: 100
+  train_bs: 16
+  val_bs: 16
+  nb_epochs: 10
 
 dataset:
   name: 'FMNIST'
