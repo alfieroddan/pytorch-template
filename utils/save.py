@@ -6,10 +6,7 @@ import json
 from torch.utils.tensorboard import SummaryWriter
 
 def summary(config):
-    os.makedirs(config['output']['path'], exist_ok=True)
-    out_dir = config['output']['path']
-    writer = SummaryWriter(os.path.join(out_dir, '/log/'))
-    return(writer)
+    return(SummaryWriter(config['output']['path']))
 
 
 def save_config(config):

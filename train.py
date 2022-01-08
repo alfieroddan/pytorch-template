@@ -7,6 +7,7 @@ from loss.gen_loss import get_loss
 from optimizer.gen_optimizer import get_optimizer
 from scheduler.gen_scheduler  import get_scheduler
 from dataloader.gen_dataloader import get_dataloader
+from dataloader.gen_transform import get_transform
 from data.gen_data import get_data
 from utils.loop import ValidEpoch, TrainEpoch
 from utils.save import save_checkpoint, save_config, summary
@@ -36,13 +37,17 @@ def train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer
 
 def run(config):
     DEVICE = get_device()
-    # get elements
+    # get parts for loop
     model = get_model(config).to(DEVICE)
     optimizer = get_optimizer(config, model.parameters())
     scheduler = get_scheduler(config, optimizer, -1)
     loss = get_loss(config)
+    # transforms
+    transforms = get_transform(config)
+    # get dataframe and ids
     df, train_ids, val_ids = get_data(config)
-    dataloaders = get_dataloader(config, df, train_ids, val_ids)
+    # get data and transforms
+    dataloaders = get_dataloader(config, df, train_ids, val_ids, transforms)
     # main training loop
     writer = summary(config)
     train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer)

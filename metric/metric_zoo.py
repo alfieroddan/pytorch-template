@@ -10,6 +10,7 @@ class Accuracy(nn.Module):
     def forward(self, predb, yb):
         return ((predb-yb)==0).float().mean()
 
+
 class MultiClassificationMeter(nn.Module):
     """
     Computes and stores the average and current value
@@ -35,8 +36,6 @@ class MultiClassificationMeter(nn.Module):
         # accuracy
         self.accuracy.append(metrics.accuracy_score(truth.detach().cpu().numpy(), torch.argmax(pred, dim=1).detach().cpu().numpy()))
         
-
-
 
 class BinaryClassificationMeter(nn.Module):
     """
@@ -77,6 +76,7 @@ class BinaryClassificationMeter(nn.Module):
         # self.avg_pre = torch.nanmean(self.pre)
         # self.avg_rec = torch.nanmean(self.rec)
         # self.avg_f1 = torch.nanmean(self.f1)
+
 
 def metric(name, params):
     f = globals().get(name)

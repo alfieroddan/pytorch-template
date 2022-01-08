@@ -64,11 +64,10 @@ class TrainEpoch(Epoch):
 
 class ValidEpoch(Epoch):
 
-    def __init__(self, model, loss, metrics=None, device='cpu'):
+    def __init__(self, model, loss, device='cpu'):
         super().__init__(
             model=model,
             loss=loss,
-            metrics=metrics,
             stage_name='valid',
             device=device
         )
