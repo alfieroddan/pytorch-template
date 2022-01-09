@@ -14,5 +14,3 @@ I wanted to create a plug and play version of training. By utilising the config 
 
 ## To Do
 - Early Stopping
-- metrics for tensorboard
-- plot learning rate on tensorboard

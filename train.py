@@ -38,6 +38,7 @@ def train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer
         writer.add_scalar('Loss/test', np.mean(val_batch_losses), i)
         if scheduler:
             scheduler.step()
+            writer.add_scalar('Learning Rate', scheduler.get_last_lr()[0], i)
 
 
 def run(config):
