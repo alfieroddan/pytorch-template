@@ -1,86 +1,68 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-from sklearn import metrics
-
-class Accuracy(nn.Module):
-
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, predb, yb):
-        return ((predb-yb)==0).float().mean()
+from torchmetrics.functional import accuracy, precision, recall, f1
 
 
 class MultiClassificationMeter(nn.Module):
     """
-    Computes and stores the average and current value
-    https://gist.github.com/kyamagu/73ab34cbe12f3db807a314019062ad43
-    expects logits
+    Computes metrics for multiclasssification problem.
     """
-    def __init__(self):
+    def __init__(self, writer):
         super().__init__()
+        self.writer = writer
         self.softmax = nn.Softmax(dim=1)
-        self.reset()
+        self.metrics = {}
+    
+    def write_out(self, epoch, stage):
+        stage = '/'+stage
+        for k, v in self.metrics.items():
+            self.writer.add_scalar(k+stage, v, epoch)
 
-    def reset(self):
-        self.predicted = []
-        self.ground_truth = []
-        self.accuracy = []
+    @staticmethod
+    def accuracy_fn(true, probs):
+        # probs will be shape N, Cout
+        # true will be shape N,
+        return(accuracy(probs, true))
 
-    def forward(self, output, target):
-        self.predicted.append(output.detach().cpu().numpy())
-        self.ground_truth.append(target.detach().cpu().numpy())
+    @staticmethod
+    def precision_fn(true, probs):
+        # probs will be shape N, Cout
+        # true will be shape N,
+        return(precision(probs, true))
+
+    @staticmethod
+    def recall_fn(true, probs):
+        # probs will be shape N, Cout
+        # true will be shape N,
+        return(recall(probs, true))
+    
+    @staticmethod
+    def f1_fn(true, probs):
+        # probs will be shape N, Cout
+        # true will be shape N,
+        return(f1(probs, true))
+
+    def forward(self, true, logits, epoch, stage):
+        # concat batches to epoch
+        # shape will be N(bs), C(out) of model
+        true = torch.cat(true, 0)
+        logits = torch.cat(logits, 0)
         # take in logits
-        pred = self.softmax(output)
-        truth = target
+        # softmax along logit dimension
+        probs = self.softmax(logits)
         # accuracy
-        self.accuracy.append(metrics.accuracy_score(truth.detach().cpu().numpy(), torch.argmax(pred, dim=1).detach().cpu().numpy()))
-        
+        self.metrics['Accuracy'] = self.accuracy_fn(true, probs)
+        self.metrics['Precision'] = self.precision_fn(true, probs)
+        self.metrics['Recall'] = self.recall_fn(true, probs)
+        self.metrics['F1'] = self.f1_fn(true, probs)
+        # write it all
+        self.write_out(epoch, stage)
 
-class BinaryClassificationMeter(nn.Module):
-    """
-    Computes and stores the average and current value
-    https://gist.github.com/kyamagu/73ab34cbe12f3db807a314019062ad43
-    expects logits
-    """
-    def __init__(self):
-        super().__init__()
-        self.reset()
-
-    def reset(self):
-        self.tp = 0
-        self.tn = 0
-        self.fp = 0
-        self.fn = 0
-        self.acc = 0
-        self.pre = 0
-        self.rec = 0
-        self.f1 = 0
-        self.predicted = []
-        self.ground_truth = []
-
-    def forward(self, output, target):
-        self.predicted.append(output.detach().cpu().numpy())
-        self.ground_truth.append(target.detach().cpu().numpy())
-        # take in logits
-        pred =  (torch.sigmoid(output) >= 0.5).float()
-        truth = (target >= 0.5).float()
-        self.tp += pred.mul(truth).sum(0).float()
-        self.tn += (1 - pred).mul(1 - truth).sum(0).float()
-        self.fp += pred.mul(1 - truth).sum(0).float()
-        self.fn += (1 - pred).mul(truth).sum(0).float()
-        self.acc = (self.tp + self.tn).sum() / (self.tp + self.tn + self.fp + self.fn).sum()
-        self.pre = self.tp / (self.tp + self.fp)
-        self.rec = self.tp / (self.tp + self.fn)
-        self.f1 = (2.0 * self.tp) / (2.0 * self.tp + self.fp + self.fn)
-        # self.avg_pre = torch.nanmean(self.pre)
-        # self.avg_rec = torch.nanmean(self.rec)
-        # self.avg_f1 = torch.nanmean(self.f1)
 
 def metric(name, params):
     f = globals().get(name)
-    return f()
+    return f(params)
 
 if __name__ == '__main__':
     print(globals())

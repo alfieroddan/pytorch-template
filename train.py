@@ -11,12 +11,11 @@ from dataloader.gen_transform import get_transform
 from metric.gen_metrics import get_metric
 from data.gen_data import get_data
 from utils.loop import ValidEpoch, TrainEpoch
-from utils.save import save_checkpoint, save_config, summary
-import os
-import pandas as pd
-import numpy as np
+from utils.save import save_config, summary
+import torch
 
-def train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer):
+
+def train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer, metric):
     # batch trainers
     train_epoch = TrainEpoch(model=model,
                             loss=loss,
@@ -29,12 +28,17 @@ def train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer
 
     for i in range(config['data']['nb_epochs']):
         print('\nEpoch: {}'.format(i))
-        train_batch_losses = train_epoch.run(dataloaders['train'])
-        val_batch_losses = valid_epoch.run(dataloaders['val'])
+        # train for epoch
+        train_batch_losses, (true, logits) = train_epoch.run(dataloaders['train'])
+        writer.add_scalar('Loss/train', torch.mean(train_batch_losses), i)
+        metric.forward(true, logits, i, 'train')
+        # test for epoch
+        val_batch_losses, (true, logits) = valid_epoch.run(dataloaders['val'])
+        metric.forward(true, logits, i, 'test')
+        writer.add_scalar('Loss/test', torch.mean(val_batch_losses), i)
         if scheduler:
             scheduler.step()
-        writer.add_scalar('Loss/train', np.mean(train_batch_losses), i)
-        writer.add_scalar('Loss/test', np.mean(val_batch_losses), i)
+
 
 def run(config):
     DEVICE = get_device()
@@ -43,7 +47,6 @@ def run(config):
     optimizer = get_optimizer(config, model.parameters())
     scheduler = get_scheduler(config, optimizer, -1)
     loss = get_loss(config)
-    metric = get_metric
     # transforms
     transforms = get_transform(config)
     # get dataframe and ids
@@ -52,7 +55,8 @@ def run(config):
     dataloaders = get_dataloader(config, df, train_ids, val_ids, transforms)
     # main training loop
     writer = summary(config)
-    train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer)
+    metric = get_metric(config, writer)
+    train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer, metric)
 
 
 def parse_args():

@@ -18,6 +18,9 @@ scheduler:
 loss:
   name: 'CrossEntropy'
 
+metric:
+  name: 'MultiClassificationMeter'
+
 transforms:
   exist: False
   train:

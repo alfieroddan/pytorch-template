@@ -11,6 +11,7 @@ class Epoch:
         self.loss = loss
         self.stage_name = stage_name
         self.device = device
+        self.pred_truth = None
         self._to_device()
 
     def _to_device(self):
@@ -24,6 +25,13 @@ class Epoch:
     def on_epoch_start(self):
         pass
 
+    def update_pred_truth(self, prediction, y):
+        # save truths and logits
+        # output logits shape
+        N, C = prediction.shape
+        self.pred_truth['truth'].append(y)
+        self.pred_truth['logits'].append(prediction)
+
     def run(self, dataloader):
         self.on_epoch_start()
         batch_losses = []
@@ -31,8 +39,7 @@ class Epoch:
             x, y = x.to(self.device), y.to(self.device)
             loss = self.batch_update(x, y)
             batch_losses.append(loss.item())
-                
-        return batch_losses
+        return batch_losses, (self.pred_truth['truth'], self.pred_truth['logits'])
 
 
 class TrainEpoch(Epoch):
@@ -48,6 +55,10 @@ class TrainEpoch(Epoch):
 
     def on_epoch_start(self):
         self.model.train()
+        self.pred_truth = {
+            'truth': [],
+            'logits': []
+        }
 
     def batch_update(self, x, y):
         if self.optimizer:
@@ -57,6 +68,7 @@ class TrainEpoch(Epoch):
         loss.backward()
         if self.optimizer:
             self.optimizer.step()
+        self.update_pred_truth(prediction, y)
         return loss
 
 
@@ -72,9 +84,14 @@ class ValidEpoch(Epoch):
 
     def on_epoch_start(self):
         self.model.eval()
+        self.pred_truth = {
+            'truth': [],
+            'logits': []
+        }
 
     def batch_update(self, x, y):
         with torch.no_grad():
             prediction = self.model.forward(x)
             loss = self.loss(prediction, y)
+            self.update_pred_truth(prediction, y)
         return loss
