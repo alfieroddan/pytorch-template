@@ -12,7 +12,7 @@ from metric.gen_metrics import get_metric
 from data.gen_data import get_data
 from utils.loop import ValidEpoch, TrainEpoch
 from utils.save import save_config, summary
-import torch
+import numpy as np
 
 
 def train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer, metric):
@@ -30,12 +30,12 @@ def train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer
         print('\nEpoch: {}'.format(i))
         # train for epoch
         train_batch_losses, (true, logits) = train_epoch.run(dataloaders['train'])
-        writer.add_scalar('Loss/train', torch.mean(train_batch_losses), i)
+        writer.add_scalar('Loss/train', np.mean(train_batch_losses), i)
         metric.forward(true, logits, i, 'train')
         # test for epoch
         val_batch_losses, (true, logits) = valid_epoch.run(dataloaders['val'])
         metric.forward(true, logits, i, 'test')
-        writer.add_scalar('Loss/test', torch.mean(val_batch_losses), i)
+        writer.add_scalar('Loss/test', np.mean(val_batch_losses), i)
         if scheduler:
             scheduler.step()
 
