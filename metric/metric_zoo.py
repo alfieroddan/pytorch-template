@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 from torchmetrics.functional import accuracy, precision, recall, f1
+import json
 
 
 class MultiClassificationMeter(nn.Module):
@@ -56,6 +57,9 @@ class MultiClassificationMeter(nn.Module):
         self.metrics['Precision'] = self.precision_fn(true, probs)
         self.metrics['Recall'] = self.recall_fn(true, probs)
         self.metrics['F1'] = self.f1_fn(true, probs)
+        # print for end of epoch
+        for k,v in self.metrics.items():
+            print(f"{k}: {v}")
         # write it all
         self.write_out(epoch, stage)
 

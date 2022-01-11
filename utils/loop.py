@@ -35,10 +35,14 @@ class Epoch:
     def run(self, dataloader):
         self.on_epoch_start()
         batch_losses = []
-        for x, y in tqdm(dataloader):
+        loop = tqdm(dataloader)
+        for idx, (x, y) in enumerate(loop):
+            # run model
             x, y = x.to(self.device), y.to(self.device)
             loss = self.batch_update(x, y)
             batch_losses.append(loss.item())
+            # update progress bar
+            loop.set_postfix(loss=loss.item())
         return batch_losses, (self.pred_truth['truth'], self.pred_truth['logits'])
 
 
