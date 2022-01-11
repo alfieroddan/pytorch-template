@@ -30,15 +30,21 @@ def train(DEVICE, config, model, optimizer, scheduler, loss, dataloaders, writer
         print('\nEpoch: {}'.format(i))
         # train for epoch
         train_batch_losses, (true, logits) = train_epoch.run(dataloaders['train'])
-        writer.add_scalar('Loss/train', np.mean(train_batch_losses), i)
+        mean_train = np.mean(train_batch_losses)
+        writer.add_scalar('Loss/train', mean_train, i)
         metric.forward(true, logits, i, 'train')
         # test for epoch
         val_batch_losses, (true, logits) = valid_epoch.run(dataloaders['val'])
         metric.forward(true, logits, i, 'test')
-        writer.add_scalar('Loss/test', np.mean(val_batch_losses), i)
+        mean_val = np.mean(val_batch_losses)
+        writer.add_scalar('Loss/test', mean_val, i)
+        # scheduler and learning rate stats
         if scheduler:
             scheduler.step()
             writer.add_scalar('Learning Rate', scheduler.get_last_lr()[0], i)
+        # print values for epoch
+        print(f"Loss/train: {mean_train}")
+        print(f"Loss/test: {mean_val}")
 
 
 def run(config):
