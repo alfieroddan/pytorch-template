@@ -12,8 +12,10 @@ def BCELoss():
 def BCELogitLoss():
     return(nn.BCEWithLogitsLoss())
     
-def loss(name):
+def loss(name, config):
     f = globals().get(name)
+    if config['loss']['exist']:
+        return(f(**config['loss']['params']))
     return f()
 
 

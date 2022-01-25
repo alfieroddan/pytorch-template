@@ -11,11 +11,13 @@ optimizer:
     lr: 0.0001
 
 scheduler:
+  exist: True
   name: 'step'
   params:
     step_size: 5
 
 loss:
+  exist: False
   name: 'CrossEntropy'
 
 metric:

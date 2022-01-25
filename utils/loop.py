@@ -2,6 +2,7 @@
 import sys
 import torch
 from tqdm import tqdm as tqdm
+import numpy as np
 
 
 class Epoch:
@@ -42,7 +43,7 @@ class Epoch:
             loss = self.batch_update(x, y)
             batch_losses.append(loss.item())
             # update progress bar
-            loop.set_postfix(loss=loss.item())
+            loop.set_postfix(loss=loss.item(), mu_loss=np.mean(batch_losses))
         return batch_losses, (self.pred_truth['truth'], self.pred_truth['logits'])
 
 
@@ -65,13 +66,11 @@ class TrainEpoch(Epoch):
         }
 
     def batch_update(self, x, y):
-        if self.optimizer:
-            self.optimizer.zero_grad()
+        self.optimizer.zero_grad()
         prediction = self.model.forward(x)
         loss = self.loss(prediction, y)
         loss.backward()
-        if self.optimizer:
-            self.optimizer.step()
+        self.optimizer.step()
         self.update_pred_truth(prediction, y)
         return loss
 
